@@ -1,3 +1,5 @@
+# road system contains all the information we want for the map
+
 road_types = {"motorway", "trunk", "primary", "secondary", "tertiary", "unclassified", "residential"}
 linkroad_types = {"motorway_link", "trunk_link", "primary_link", "secondary_link", "tertiary_link"}
 

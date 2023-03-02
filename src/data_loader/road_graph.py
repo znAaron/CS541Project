@@ -1,3 +1,6 @@
+# road graph is an abstraction to our road system
+
+# our node for the graph
 class Intersection:
     def __init__(self, id, lat, lon):
         self.id = id
@@ -8,6 +11,7 @@ class Intersection:
     def add_neighbour(n):
         neighbours.append(n)
 
+# our edge for the graph
 class Road_Segment:
     def __init__(self, src, dst, speed, shape):
         self.id = id
@@ -17,6 +21,7 @@ class Road_Segment:
         self.delay = length/speed
         self.neighbours = []
 
+# our graph
 class Road_Graph:
     def __init__(self):
         # id to intersection dictionary

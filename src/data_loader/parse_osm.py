@@ -1,3 +1,5 @@
+# process the data from open street map
+
 import osmium
 from road_system import *
 
