@@ -41,6 +41,7 @@ class Road_System:
         else:
             self.named_roads[road.name] = [road]
 
+    # todo: combine roads only with the same speed limit
     def combine_named_roads(self):
         for road_list in self.named_roads.values():
             road_num = len(road_list)
