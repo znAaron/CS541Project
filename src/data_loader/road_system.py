@@ -1,4 +1,5 @@
 # road system contains all the information we want for the map
+from road_graph import *
 
 road_types = {"motorway", "trunk", "primary", "secondary", "tertiary", "unclassified", "residential"}
 linkroad_types = {"motorway_link", "trunk_link", "primary_link", "secondary_link", "tertiary_link"}
@@ -32,7 +33,7 @@ class Road_System:
         self.processed_roads = []
 
         self.way_points = set()
-        self.intersection = set()
+        self.intersections = set()
 
     def add_linked_road(self, road):
         self.link_roads.append(road)
@@ -95,13 +96,35 @@ class Road_System:
 
     def find_interesection(self):
         for road in self.processed_roads:
-            for node in road.nodes:
-                if node in self.intersection:
+            self.intersections.add(road.src)
+            self.intersections.add(road.dst)
+
+            for i, node in enumerate(road.nodes[1:-1]):
+                if node in self.intersections:
                     continue
                 if node in self.way_points:
                     self.way_points.remove(node)
-                    self.intersection.add(node)
+                    self.intersections.add(node)
                 else:
                     self.way_points.add(node)
+        print("way point count: {}, intersection count {}"
+            .format(len(self.way_points), len(self.intersections)))
 
-        print("way point count: {}, intersection count {}".format(len(self.way_points), len(self.intersection)))
+    def load_roads(self, graph):
+        for road in self.processed_roads:
+            prev = road.nodes[0]
+            way_points = []
+            for i, node in enumerate(road.nodes[1:]):
+                if node in self.intersections:
+                    road_seg = Road_Segment(road.id, road.name, prev, \
+                        node, road.speedlimit, way_points)
+                    graph.add_road_segment(road_seg)
+                    prev = node
+                    way_points = []
+                else:
+                    way_points.append(node)
+    
+    def dump(self):
+        for road in self.processed_roads:
+            print(road)
+

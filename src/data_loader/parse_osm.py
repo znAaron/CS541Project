@@ -1,14 +1,15 @@
 # process the data from open street map
-
 import osmium
 from road_system import *
+from road_graph import *
 
 DATA_FILE = "../../data/osm-sm/west_lafayette.osm"
 road_system = Road_System()
+road_graph = Road_Graph()
 
-class Data_Processer(osmium.SimpleHandler):
+class Road_Processer(osmium.SimpleHandler):
     def __init__(self):
-        super(Data_Processer, self).__init__()
+        super(Road_Processer, self).__init__()
 
     def process_road(self, r):
         r_type = r.tags.get("highway")
@@ -42,10 +43,26 @@ class Data_Processer(osmium.SimpleHandler):
         if "highway" in w.tags:
             self.process_road(w)
 
-processor = Data_Processer()
-processor.apply_file(DATA_FILE)
+class Node_Processer(osmium.SimpleHandler):
+    def __init__(self):
+        super(Node_Processer, self).__init__()
+
+    def process_intersection(self, n):
+        intersection = Intersection(n.id, n.location.lat, n.location.lon)
+        road_graph.add_intersection(intersection)
+
+    def node(self, n):
+        if n.id in road_system.intersections:
+            self.process_intersection(n)
+
+r_processor = Road_Processer()
+r_processor.apply_file(DATA_FILE)
 
 road_system.combine_named_roads()
 road_system.find_interesection()
-for road in road_system.processed_roads:
-    print(road)
+road_system.load_roads(road_graph)
+
+n_processor = Node_Processer()
+n_processor.apply_file(DATA_FILE)
+
+road_graph.fdump()
