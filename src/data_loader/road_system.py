@@ -31,6 +31,9 @@ class Road_System:
 
         self.processed_roads = []
 
+        self.way_points = set()
+        self.intersection = set()
+
     def add_linked_road(self, road):
         self.link_roads.append(road)
 
@@ -45,6 +48,8 @@ class Road_System:
 
     # todo: combine roads only with the same speed limit
     def combine_named_roads(self):
+        self.processed_roads.extend(self.link_roads)
+        self.processed_roads.extend(self.junction_roads)
         for road_list in self.named_roads.values():
             road_num = len(road_list)
             
@@ -87,3 +92,16 @@ class Road_System:
         
         combined_road = Road(r1.id, r1.name, node_list, r1.speedlimit)
         return combined_road
+
+    def find_interesection(self):
+        for road in self.processed_roads:
+            for node in road.nodes:
+                if node in self.intersection:
+                    continue
+                if node in self.way_points:
+                    self.way_points.remove(node)
+                    self.intersection.add(node)
+                else:
+                    self.way_points.add(node)
+
+        print("way point count: {}, intersection count {}".format(len(self.way_points), len(self.intersection)))

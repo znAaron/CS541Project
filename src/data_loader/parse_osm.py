@@ -46,5 +46,6 @@ processor = Data_Processer()
 processor.apply_file(DATA_FILE)
 
 road_system.combine_named_roads()
+road_system.find_interesection()
 for road in road_system.processed_roads:
     print(road)
