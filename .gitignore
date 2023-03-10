@@ -1,2 +1,12 @@
+# python compiled file
+__pycache__/
+*.py[cod]
+
+# large data
 data/osm-lg/*
+
+# output
 output/*
+
+# log
+*.log
