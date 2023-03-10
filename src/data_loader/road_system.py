@@ -1,5 +1,5 @@
 # road system contains all the information we want for the map
-from road_graph import *
+from src.graph.road_graph import *
 
 road_types = {"motorway", "trunk", "primary", "secondary", "tertiary", "unclassified", "residential"}
 linkroad_types = {"motorway_link", "trunk_link", "primary_link", "secondary_link", "tertiary_link"}
@@ -51,8 +51,18 @@ class Road_System:
     def combine_named_roads(self):
         self.processed_roads.extend(self.link_roads)
         self.processed_roads.extend(self.junction_roads)
+        num_road_names = len(self.named_roads)
+        progress_tracker = 0
+
         for road_list in self.named_roads.values():
             road_num = len(road_list)
+
+            # skip road with size too large, mainly for unnamed roads
+            if (road_num > 10000):
+                self.processed_roads.extend(road_list)
+                print("skipping roads with name: {}, because it has size {}".format(road_list[0].name, road_num))
+                continue
+            #print("combining roads with name: {}, with size {}".format(road_list[0].name, road_num))
             
             combined_list = []
             visited = [False] * road_num
@@ -64,6 +74,7 @@ class Road_System:
 
                 j = i + 1
                 while j < road_num:
+
                     if visited[j] or not self.can_combine_roads(curr_road, road_list[j]):
                         j += 1
                     else:
@@ -73,6 +84,10 @@ class Road_System:
                 
                 combined_list.append(curr_road)
             self.processed_roads.extend(combined_list)
+
+            progress_tracker += 1
+            if (progress_tracker % 10000 == 0):
+                print("road combing progress: {}/{}".format(progress_tracker, num_road_names))
 
     def can_combine_roads(self, r1, r2):
         return r1.src == r2.src \

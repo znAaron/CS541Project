@@ -1,9 +1,9 @@
 # process the data from open street map
 import osmium
-from road_system import *
-from road_graph import *
+import logging
+from src.data_loader.road_system import *
+from src.graph.road_graph import *
 
-DATA_FILE = "../../data/osm-sm/west_lafayette.osm"
 road_system = Road_System()
 road_graph = Road_Graph()
 
@@ -28,7 +28,13 @@ class Road_Processer(osmium.SimpleHandler):
             road_speedlimit = 0
             r_speedlimit = r.tags.get("maxspeed")
             if r_speedlimit is not None:
-                road_speedlimit = int(r_speedlimit[:-4])
+                try:
+                    road_speedlimit = float(r_speedlimit)
+                except ValueError:
+                    try:
+                        road_speedlimit = float(r_speedlimit[:-4])
+                    except ValueError:
+                        print("error parsing roadspeed: ", r_speedlimit)
 
             road = Road(r.id, road_name, r.nodes, road_speedlimit)
 
@@ -55,14 +61,29 @@ class Node_Processer(osmium.SimpleHandler):
         if n.id in road_system.intersections:
             self.process_intersection(n)
 
-r_processor = Road_Processer()
-r_processor.apply_file(DATA_FILE)
 
-road_system.combine_named_roads()
-road_system.find_interesection()
-road_system.load_roads(road_graph)
+class OSM_Parser:
+    def __init__(self, soruce_data):
+        self.logger = logging.getLogger(__name__)
+        self.data = soruce_data
 
-n_processor = Node_Processer()
-n_processor.apply_file(DATA_FILE)
+    # the log enable us to trace the performance using the timestamp
+    def load_sample_data(self):
+        r_processor = Road_Processer()
 
-road_graph.fdump()
+        self.logger.info("start extracting street from the data file")
+        r_processor.apply_file(self.data)
+        self.logger.info("finished extracting street from the data file")
+
+        road_system.combine_named_roads()
+        road_system.find_interesection()
+        road_system.load_roads(road_graph)
+
+        n_processor = Node_Processer()
+        n_processor.apply_file(self.data)
+
+        road_graph.find_neighbours()
+        road_graph.fdump()
+
+
+

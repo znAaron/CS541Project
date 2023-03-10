@@ -6,14 +6,14 @@ class Intersection:
         self.id = id
         self.lat = lat
         self.lon = lon
-        self.neighbours = []
+        self.neighbours = set()
 
-    def add_neighbour(n):
-        neighbours.append(n)
+    def add_neighbour(self, n):
+        self.neighbours.add(n)
 
     def __str__(self):
-        return "intersection-{}({}, {})".format(
-            str(self.id), str(self.lat), str(self.lon))
+        return "intersection-{}({}, {}), {} neighbours".format(
+            str(self.id), str(self.lat), str(self.lon), str(len(self.neighbours)))
 
 # our edge for the graph
 class Road_Segment:
@@ -22,7 +22,7 @@ class Road_Segment:
         self.name = name
         self.src = src
         self.dst = dst
-        self.speed = 30
+        self.speed = -1
         if speed != 0:
             self.speed = speed
         self.points = way_points
@@ -55,6 +55,13 @@ class Road_Graph:
     #def shortest_path_astar:
         # To implement
 
+    def find_neighbours(self):
+        for road_seg in self.road_segments.values():
+            self.intersections.get(road_seg.src).add_neighbour(
+                self.intersections.get(road_seg.dst))
+            self.intersections.get(road_seg.dst).add_neighbour(
+                self.intersections.get(road_seg.src))
+
     def dump(self):
         print("Road Graph:\n=========================")
         print("Intersections:")
@@ -68,11 +75,11 @@ class Road_Graph:
         f = open("road_graph_dump.txt", "w")
 
         f.write("Road Graph:\n=========================")
-        f.write("\nIntersections:")
+        f.write("\nIntersections:\n")
         for intersection in self.intersections.values():
             f.write(str(intersection))
             f.write("\n")
-        f.write("\nRoad_Segments:")
+        f.write("\nRoad_Segments:\n")
         for road_seg in self.road_segments.values():
             f.write(str(road_seg))
             f.write("\n")
