@@ -1,4 +1,5 @@
 # road graph is an abstraction to our road system
+import logging
 
 # our node for the graph
 class Intersection:
@@ -18,25 +19,23 @@ class Intersection:
 # our edge for the graph
 class Road_Segment:
     def __init__(self, id, name, src, dst, speed, way_points):
-        self.id = id
         self.name = name
         self.src = src
         self.dst = dst
-        self.speed = -1
-        if speed != 0:
-            self.speed = speed
+        self.speed = speed
         self.points = way_points
-
+    
         self.length = 0
         self.delay = 0
 
     def __str__(self):
-        return "road-{}({}), {}mph [{}->{}]".format(
-            self.name, str(self.id), str(self.speed), str(self.src), str(self.dst))
+        return "road-{}, {}mph [{}->{}]".format(
+            self.name, str(self.speed), str(self.src), str(self.dst))
 
 # our graph
 class Road_Graph:
     def __init__(self):
+        self.logger = logging.getLogger(__name__)
         # id to intersection dictionary
         self.intersections = {}
         # src:dst to road_segment dictionary
@@ -56,32 +55,32 @@ class Road_Graph:
         # To implement
 
     def find_neighbours(self):
+        self.logger.info("start finding neighbours of all the nodes")
         for road_seg in self.road_segments.values():
             self.intersections.get(road_seg.src).add_neighbour(
                 self.intersections.get(road_seg.dst))
             self.intersections.get(road_seg.dst).add_neighbour(
                 self.intersections.get(road_seg.src))
+        self.logger.info("finish finding neighbours of all the nodes")
 
+    # prefer using fdump because the file can get large
     def dump(self):
-        print("Road Graph:\n=========================")
-        print("Intersections:")
+        self.logger.info("Dumping Road Graph:\n=========================")
+        self.logger.info("Intersections:")
         for intersection in self.intersections.values():
-            print(intersection)
-        print("\nRoad_Segments:")
+            self.logger.info(intersection)
+        self.logger.info("\nRoad_Segments:")
         for road_seg in self.road_segments.values():
-            print(road_seg)
+            self.logger.info(road_seg)
 
     def fdump(self):
-        f = open("road_graph_dump.txt", "w")
-
-        f.write("Road Graph:\n=========================")
-        f.write("\nIntersections:\n")
-        for intersection in self.intersections.values():
-            f.write(str(intersection))
-            f.write("\n")
-        f.write("\nRoad_Segments:\n")
-        for road_seg in self.road_segments.values():
-            f.write(str(road_seg))
-            f.write("\n")
-
-        f.close
+        with open("./output/road_graph_dump.txt", "w") as f:
+            f.write("Road Graph:\n=========================")
+            f.write("\nIntersections:\n")
+            for intersection in self.intersections.values():
+                f.write(str(intersection))
+                f.write("\n")
+            f.write("\nRoad_Segments:\n")
+            for road_seg in self.road_segments.values():
+                f.write(str(road_seg))
+                f.write("\n")

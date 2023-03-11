@@ -4,12 +4,29 @@ import logging
 from src.data_loader.road_system import *
 from src.graph.road_graph import *
 
-road_system = Road_System()
-road_graph = Road_Graph()
+road_types = {"motorway", "trunk", "primary", "secondary", "tertiary", "unclassified", "residential"}
+linkroad_types = {"motorway_link", "trunk_link", "primary_link", "secondary_link", "tertiary_link"}
+
+road_type_to_speed = {
+    "motorway": 70,
+    "trunk": 65,
+    "primary": 55,
+    "secondary": 40,
+    "tertiary": 35,
+    "unclassified": 25,
+    "residential": 25,
+
+    "motorway_link": 55,
+    "trunk_link": 45,
+    "primary_link": 40,
+    "secondary_link": 35,
+    "tertiary_link": 30
+}
 
 class Road_Processer(osmium.SimpleHandler):
-    def __init__(self):
+    def __init__(self, road_system):
         super(Road_Processer, self).__init__()
+        self.road_system = road_system
 
     def process_road(self, r):
         r_type = r.tags.get("highway")
@@ -36,29 +53,34 @@ class Road_Processer(osmium.SimpleHandler):
                     except ValueError:
                         print("error parsing roadspeed: ", r_speedlimit)
 
+            if road_speedlimit == 0:
+                road_speedlimit = road_type_to_speed.get(r_type)
+
             road = Road(r.id, road_name, r.nodes, road_speedlimit)
 
             if r_type in linkroad_types:
-                road_system.add_linked_road(road)
+                self.road_system.add_linked_road(road)
             elif "junction" in r.tags:
-                road_system.add_junction_road(road)
+                self.road_system.add_junction_road(road)
             else:
-                road_system.add_named_road(road)
+                self.road_system.add_named_road(road)
 
     def way(self, w):
         if "highway" in w.tags:
             self.process_road(w)
 
 class Node_Processer(osmium.SimpleHandler):
-    def __init__(self):
+    def __init__(self, road_system, road_graph):
         super(Node_Processer, self).__init__()
+        self.road_graph = road_graph
+        self.road_system = road_system
 
     def process_intersection(self, n):
         intersection = Intersection(n.id, n.location.lat, n.location.lon)
-        road_graph.add_intersection(intersection)
+        self.road_graph.add_intersection(intersection)
 
     def node(self, n):
-        if n.id in road_system.intersections:
+        if n.id in self.road_system.intersections:
             self.process_intersection(n)
 
 
@@ -67,23 +89,26 @@ class OSM_Parser:
         self.logger = logging.getLogger(__name__)
         self.data = soruce_data
 
+        self.road_system = Road_System()
+        self.road_graph = Road_Graph()
+
     # the log enable us to trace the performance using the timestamp
     def load_sample_data(self):
-        r_processor = Road_Processer()
+        r_processor = Road_Processer(self.road_system)
 
         self.logger.info("start extracting street from the data file")
         r_processor.apply_file(self.data)
-        self.logger.info("finished extracting street from the data file")
+        self.logger.info("finish extracting street from the data file")
 
-        road_system.combine_named_roads()
-        road_system.find_interesection()
-        road_system.load_roads(road_graph)
+        self.road_system.combine_named_roads()
+        self.road_system.find_interesection()
+        self.road_system.load_roads(self.road_graph)
 
-        n_processor = Node_Processer()
+        n_processor = Node_Processer(self.road_system, self.road_graph)
         n_processor.apply_file(self.data)
 
-        road_graph.find_neighbours()
-        road_graph.fdump()
+        self.road_graph.find_neighbours()
+        self.road_graph.fdump()
 
 
 
