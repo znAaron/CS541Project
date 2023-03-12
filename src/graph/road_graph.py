@@ -1,12 +1,16 @@
 # road graph is an abstraction to our road system
 import logging
 
-# our node for the graph
-class Intersection:
+class Node:
     def __init__(self, id, lat, lon):
         self.id = id
         self.lat = lat
         self.lon = lon
+
+# our node for the graph
+class Intersection(Node):
+    def __init__(self, id, lat, lon):
+        super().__init__(id, lat, lon)
         self.neighbours = set()
 
     def add_neighbour(self, n):

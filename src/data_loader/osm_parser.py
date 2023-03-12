@@ -1,9 +1,11 @@
 # process the data from open street map
-import osmium
 import logging
+import osmium
 from src.data_loader.road_system import *
+from src.data_loader.osm_database import *
 from src.graph.road_graph import *
 
+# define the tags for different road type
 road_types = {"motorway", "trunk", "primary", "secondary", "tertiary", "unclassified", "residential"}
 linkroad_types = {"motorway_link", "trunk_link", "primary_link", "secondary_link", "tertiary_link"}
 
@@ -56,6 +58,7 @@ class Road_Processer(osmium.SimpleHandler):
             if road_speedlimit == 0:
                 road_speedlimit = road_type_to_speed.get(r_type)
 
+            #print(type(r.nodes))
             road = Road(r.id, road_name, r.nodes, road_speedlimit)
 
             if r_type in linkroad_types:
@@ -70,16 +73,18 @@ class Road_Processer(osmium.SimpleHandler):
             self.process_road(w)
 
 class Node_Processer(osmium.SimpleHandler):
-    def __init__(self, road_system, road_graph):
+    def __init__(self, road_system, road_graph, database):
         super(Node_Processer, self).__init__()
         self.road_graph = road_graph
         self.road_system = road_system
+        self.database = database
 
     def process_intersection(self, n):
         intersection = Intersection(n.id, n.location.lat, n.location.lon)
         self.road_graph.add_intersection(intersection)
 
     def node(self, n):
+        self.database.insert_node(n.id, n.location.lat, n.location.lon)
         if n.id in self.road_system.intersections:
             self.process_intersection(n)
 
@@ -91,6 +96,7 @@ class OSM_Parser:
 
         self.road_system = Road_System()
         self.road_graph = Road_Graph()
+        self.database = OSM_Database()
 
     # the log enable us to trace the performance using the timestamp
     def load_sample_data(self):
@@ -104,11 +110,13 @@ class OSM_Parser:
         self.road_system.find_interesection()
         self.road_system.load_roads(self.road_graph)
 
-        n_processor = Node_Processer(self.road_system, self.road_graph)
+        n_processor = Node_Processer(self.road_system, self.road_graph, self.database)
         n_processor.apply_file(self.data)
-
+        self.database.flush_node()
+        
         self.road_graph.find_neighbours()
         self.road_graph.fdump()
+        self.database.close()
 
 
 
