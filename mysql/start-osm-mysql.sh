@@ -1,0 +1,1 @@
+docker-compose -f osm-mysql.yml up
