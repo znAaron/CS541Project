@@ -6,10 +6,15 @@ services:
       - SYS_NICE
     restart: always
     environment:
-      - MYSQL_DATABASE=osm-data
-      - MYSQL_ROOT_PASSWORD=password
+      - MYSQL_DATABASE=osm-db
+      - MYSQL_ROOT_PASSWORD=${OSM_DB_PWD}
+      - MYSQL_USER=osm-user
+      - MYSQL_PASSWORD=${OSM_DB_PWD}
     ports:
-      - '3300:3300'
+      - '3306:3306'
+    expose:
+      - '3306'
+    container_name: osm-database
     volumes:
       - db:/var/lib/mysql
       - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql
