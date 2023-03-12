@@ -20,10 +20,15 @@ class OSM_Database:
     self.logger = logging.getLogger(__name__)
 
     # connect to mysql database
-    self.logger.warn(f"connecting mysql database @{os.environ.get('OSM_DB_HOST')}:os.environ.get('OSM_DB_PORT')")
+    dbhost = os.environ.get('OSM_DB_HOST')
+    dbport = os.environ.get('OSM_DB_PORT')
+    if dbhost is None or dbport is None or os.environ.get('OSM_DB_PWD') is None:
+      self.logger.error(f"failed to load environment varibles please set them before use")
+    
+    self.logger.info(f"connecting mysql database @{dbhost}:{dbport}")
     self.osm_db = mysql.connector.connect(
-      host = os.environ.get('OSM_DB_HOST'),
-      port = os.environ.get('OSM_DB_PORT'),
+      host = dbhost,
+      port = dbport,
       user = "osm-user",
       password = os.environ.get('OSM_DB_PWD'),
       database="osm-db"

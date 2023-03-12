@@ -9,6 +9,9 @@ from src.data_loader.osm_parser import *
 SAMPLE_FILE = "./data/osm-sm/west_lafayette.osm"
 DATA_FILE = "./data/osm-lg/us-midwest-latest.osm.pbf"
 
+if not os.path.exists("output/logs"):
+   os.makedirs("output/logs")
+
 # initialize the logger
 def logmaker():
     log_path = os.path.dirname("./output/logs/")
