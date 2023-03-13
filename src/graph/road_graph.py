@@ -1,5 +1,8 @@
 # road graph is an abstraction to our road system
 import logging
+from haversine import haversine, Unit
+
+mph_to_ms = 0.44704
 
 class Node:
     def __init__(self, id, lat, lon):
@@ -29,12 +32,33 @@ class Road_Segment:
         self.speed = speed
         self.points = way_points
     
+        # length in miles
         self.length = 0
+        # delay in seconds
         self.delay = 0
 
+    def process_distance(self, database):
+        src_node = database.get_node(self.src)
+        prev_node = (src_node.lat, src_node.lon)
+        distance = 0
+        
+        for nid in self.points:
+            node = database.get_node(nid)
+            curr_node = (node.lat, node.lon)
+            subdistance = haversine(prev_node, curr_node, unit=Unit.METERS)
+            distance += subdistance
+            prev_node = curr_node
+        dst_node = database.get_node(self.dst)
+        curr_node = (dst_node.lat, dst_node.lon)
+        subdistance = haversine(prev_node, curr_node, unit=Unit.METERS)
+        distance += subdistance
+            
+        self.length = distance
+        self.delay = self.length / self.speed * mph_to_ms
+
     def __str__(self):
-        return "road-{}, {}mph [{}->{}]".format(
-            self.name, str(self.speed), str(self.src), str(self.dst))
+        return "road-{}, length: {}m, speed: {}mph, time: {}s [{}->{}]".format(
+            self.name, str(self.length), str(self.speed), str(self.delay), str(self.src), str(self.dst))
 
 # our graph
 class Road_Graph:
@@ -66,6 +90,12 @@ class Road_Graph:
             self.intersections.get(road_seg.dst).add_neighbour(
                 self.intersections.get(road_seg.src))
         self.logger.info("finish finding neighbours of all the nodes")
+
+    def process_distance(self, database):
+        self.logger.info("start calculating distance for the road segments")
+        for road_seg in self.road_segments.values():
+            road_seg.process_distance(database)
+        self.logger.info("finish calculating distance for the road segments")
 
     # prefer using fdump because the file can get large
     def dump(self):

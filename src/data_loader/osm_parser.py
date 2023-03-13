@@ -114,7 +114,10 @@ class OSM_Parser:
         n_processor.apply_file(self.data)
         self.database.flush_node()
         
+        # preprocessing for the graph
         self.road_graph.find_neighbours()
+        self.road_graph.process_distance(self.database)
+
         self.road_graph.fdump()
         self.database.close()
 

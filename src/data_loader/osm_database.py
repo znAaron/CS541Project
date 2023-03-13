@@ -3,6 +3,7 @@ import logging
 import os
 import mysql.connector
 from mysql.connector import errorcode
+from src.graph.road_graph import *
 
 DB_NAME = 'osm-db'
 
@@ -10,8 +11,8 @@ TABLES = {}
 TABLES['nodes'] = (
     "CREATE TABLE `nodes` ("
     "  `id` BIGINT NOT NULL,"
-    "  `lat` float NOT NULL,"
-    "  `lon` float NOT NULL,"
+    "  `lat` double NOT NULL,"
+    "  `lon` double NOT NULL,"
     "  PRIMARY KEY (`id`)"
     ") ENGINE=InnoDB")
 
@@ -60,7 +61,7 @@ class OSM_Database:
 
   def flush_node(self):
     cursor = self.osm_db.cursor()
-    query = "INSERT INTO nodes (id, lat, lon) VALUES (%s, %s, %s)"
+    query = "INSERT IGNORE INTO nodes (id, lat, lon) VALUES (%s, %s, %s)"
     cursor.executemany(query, self.node_cache)
     self.osm_db.commit()
     self.node_cache = []
@@ -68,15 +69,15 @@ class OSM_Database:
 
   def get_node(self, id):
     cursor = self.osm_db.cursor()
-    query = "SELECT * FROM nodes WHERE id = %s"
-    cursor.execute(query, id)
+    query = f"SELECT * FROM nodes WHERE id = {id}"
+    cursor.execute(query)
     row = cursor.fetchone()
     cursor.close()
 
     if row is None:
       self.logger.error(f"fetch node failed with id {id} ")
       return None
-    return Node(row.id, row.lat, row.lon)
+    return Node(row[0], row[1], row[2])
 
   def close(self):
     self.osm_db.close()
