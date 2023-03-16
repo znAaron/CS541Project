@@ -11,9 +11,9 @@ services:
       - MYSQL_USER=osm-user
       - MYSQL_PASSWORD=${OSM_DB_PWD}
     ports:
-      - '3306:3306'
+      - ${OSM_DB_PORT}:3306
     expose:
-      - '3306'
+      - ${OSM_DB_PORT}
     container_name: osm-database
     volumes:
       - db:/var/lib/mysql
