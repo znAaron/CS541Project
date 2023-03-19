@@ -4,6 +4,7 @@ import osmium
 from src.data_loader.road_system import *
 from src.data_loader.osm_database import *
 from src.graph.road_graph import *
+from src.graph.pathfinder_astar import *
 
 # define the tags for different road type
 road_types = {"motorway", "trunk", "primary", "secondary", "tertiary", "unclassified", "residential"}
@@ -23,6 +24,12 @@ road_type_to_speed = {
     "primary_link": 40,
     "secondary_link": 35,
     "tertiary_link": 30
+}
+
+node_delay = {
+    "give_way": 5,
+    "stop": 15,
+    "traffic_signals": 90
 }
 
 class Road_Processer(osmium.SimpleHandler):
@@ -80,7 +87,12 @@ class Node_Processer(osmium.SimpleHandler):
         self.database = database
 
     def process_intersection(self, n):
-        intersection = Intersection(n.id, n.location.lat, n.location.lon)
+        delay = 0
+        tag = n.tags.get("highway")
+        if tag is not None:
+            if tag in node_delay.keys():
+                delay = node_delay.get(tag)
+        intersection = Intersection(n.id, n.location.lat, n.location.lon, delay)
         self.road_graph.add_intersection(intersection)
 
     def node(self, n):
@@ -115,10 +127,12 @@ class OSM_Parser:
         self.database.flush_node()
         
         # preprocessing for the graph
-        self.road_graph.find_neighbours()
+        self.road_graph.process_neighbours()
         self.road_graph.process_distance(self.database)
 
         self.road_graph.fdump()
+        a_star_search(self.road_graph, 5030761221, 37997160)
+
         self.database.close()
 
 

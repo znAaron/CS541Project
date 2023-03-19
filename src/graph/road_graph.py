@@ -2,7 +2,7 @@
 import logging
 from haversine import haversine, Unit
 
-mph_to_ms = 0.44704
+MPH_MS_FACTOR = 0.44704
 
 class Node:
     def __init__(self, id, lat, lon):
@@ -10,18 +10,22 @@ class Node:
         self.lat = lat
         self.lon = lon
 
+    def location(self):
+        return(self.lat, self.lon)
+
 # our node for the graph
 class Intersection(Node):
-    def __init__(self, id, lat, lon):
+    def __init__(self, id, lat, lon, delay):
         super().__init__(id, lat, lon)
         self.neighbours = set()
+        self.delay = delay
 
     def add_neighbour(self, n):
         self.neighbours.add(n)
 
     def __str__(self):
-        return "intersection-{}({}, {}), {} neighbours".format(
-            str(self.id), str(self.lat), str(self.lon), str(len(self.neighbours)))
+        return "intersection-{}({}, {}), delay {} s, {} neighbours".format(
+            str(self.id), str(self.lat), str(self.lon), str(self.delay), str(len(self.neighbours)))
 
 # our edge for the graph
 class Road_Segment:
@@ -54,7 +58,7 @@ class Road_Segment:
         distance += subdistance
             
         self.length = distance
-        self.delay = self.length / self.speed * mph_to_ms
+        self.delay = self.length / self.speed * MPH_MS_FACTOR
 
     def __str__(self):
         return "road-{}, length: {}m, speed: {}mph, time: {}s [{}->{}]".format(
@@ -73,8 +77,24 @@ class Road_Graph:
         self.intersections[i.id] = i
 
     def add_road_segment(self, r):
-        r_key = str(r.src) + ":" + str(r.dst)
-        self.road_segments[r_key] = r
+        key1 = str(r.src) + ":" + str(r.dst)
+        key2 = str(r.dst) + ":" + str(r.src)
+        self.road_segments[key1] = r
+        self.road_segments[key2] = r
+
+    def delay(self, i1, i2):
+        key = str(i1) + ":" + str(i2)
+        seg = self.road_segments.get(key)
+        dst = self.intersections.get(i2)
+        if seg is None or dst is None:
+            return 360000
+        return seg.delay + dst.delay 
+
+    def harv_distance(self, i1, i2):
+        src = self.intersections.get(i1)
+        dst = self.intersections.get(i2)
+        distance = haversine(src.location(), dst.location(), unit=Unit.METERS)
+        return distance
 
     #def shortest_path_dijkstra:
         # To implement
@@ -82,13 +102,11 @@ class Road_Graph:
     #def shortest_path_astar:
         # To implement
 
-    def find_neighbours(self):
+    def process_neighbours(self):
         self.logger.info("start finding neighbours of all the nodes")
         for road_seg in self.road_segments.values():
-            self.intersections.get(road_seg.src).add_neighbour(
-                self.intersections.get(road_seg.dst))
-            self.intersections.get(road_seg.dst).add_neighbour(
-                self.intersections.get(road_seg.src))
+            self.intersections.get(road_seg.src).add_neighbour(road_seg.dst)
+            self.intersections.get(road_seg.dst).add_neighbour(road_seg.src)
         self.logger.info("finish finding neighbours of all the nodes")
 
     def process_distance(self, database):
