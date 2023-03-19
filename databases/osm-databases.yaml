@@ -24,7 +24,7 @@ services:
     ports:
       - ${OSM_REDIS_PORT}:6379
     expose:
-      - ${OSM_DB_PORT}
+      - ${OSM_REDIS_PORT}
     environment:
       - REDIS_REPLICATION_MODE=master
       - REDIS_PASSWORD=${OSM_REDIS_PWD}

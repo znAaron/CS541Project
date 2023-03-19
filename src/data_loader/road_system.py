@@ -21,6 +21,12 @@ class Road:
         return "{}({}), {} mph, [{} -> {}]".format(
             self.name, str(self.id), str(self.speedlimit), str(self.src), str(self.dst))
 
+class InterestPoint(Node):
+    def __init__(self, id, lat, lon, name, point_type):
+        super().__init__(id, lat, lon)
+        self.name = name
+        self.type = point_type
+
 class Road_System:
     def __init__(self):
         self.logger = logging.getLogger(__name__)

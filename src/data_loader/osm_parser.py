@@ -5,6 +5,7 @@ from src.data_loader.road_system import *
 from src.data_loader.osm_database import *
 from src.graph.road_graph import *
 from src.graph.pathfinder_astar import *
+from src.data_loader.osm_redis import *
 
 # define the tags for different road type
 road_types = {"motorway", "trunk", "primary", "secondary", "tertiary", "unclassified", "residential"}
@@ -80,11 +81,12 @@ class Road_Processer(osmium.SimpleHandler):
             self.process_road(w)
 
 class Node_Processer(osmium.SimpleHandler):
-    def __init__(self, road_system, road_graph, database):
+    def __init__(self, road_system, road_graph, database, redis):
         super(Node_Processer, self).__init__()
         self.road_graph = road_graph
         self.road_system = road_system
         self.database = database
+        self.redis = redis
 
     def process_intersection(self, n):
         delay = 0
@@ -95,8 +97,17 @@ class Node_Processer(osmium.SimpleHandler):
         intersection = Intersection(n.id, n.location.lat, n.location.lon, delay)
         self.road_graph.add_intersection(intersection)
 
+    def process_interestpoint(self, n):
+        amenity_type = n.tags.get("amenity")
+        name = n.tags.get("name")
+        if amenity_type == "restaurant" or amenity_type == "fast_food" or amenity_type == "food_court":
+            point = InterestPoint(n.id, n.location.lat, n.location.lon, name, amenity_type)
+            self.redis.add_geo("food", point)
+
     def node(self, n):
         self.database.insert_node(n.id, n.location.lat, n.location.lon)
+        if "amenity" in n.tags:
+            self.process_interestpoint(n)
         if n.id in self.road_system.intersections:
             self.process_intersection(n)
 
@@ -109,6 +120,7 @@ class OSM_Parser:
         self.road_system = Road_System()
         self.road_graph = Road_Graph()
         self.database = OSM_Database()
+        self.redis = OSM_Redis()
 
     # the log enable us to trace the performance using the timestamp
     def load_sample_data(self):
@@ -122,7 +134,7 @@ class OSM_Parser:
         self.road_system.find_interesection()
         self.road_system.load_roads(self.road_graph)
 
-        n_processor = Node_Processer(self.road_system, self.road_graph, self.database)
+        n_processor = Node_Processer(self.road_system, self.road_graph, self.database, self.redis)
         n_processor.apply_file(self.data)
         self.database.flush_node()
         

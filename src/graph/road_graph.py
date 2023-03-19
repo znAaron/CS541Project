@@ -119,12 +119,6 @@ class Road_Graph:
 
         return center
 
-    #def shortest_path_dijkstra:
-        # To implement
-
-    #def shortest_path_astar:
-        # To implement
-
     def process_neighbours(self):
         self.logger.info("start finding neighbours of all the nodes")
         for road_seg in self.road_segments.values():
