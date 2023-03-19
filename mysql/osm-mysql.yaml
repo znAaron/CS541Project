@@ -1,6 +1,7 @@
 version: '3.8'
+
 services:
-  db:
+  mysql:
     image: mysql:8.0
     cap_add:
       - SYS_NICE
@@ -16,8 +17,21 @@ services:
       - ${OSM_DB_PORT}
     container_name: osm-database
     volumes:
-      - db:/var/lib/mysql
-      - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql
+      - mysql:/var/lib/mysql
+      - ./mysql/init.sql:/docker-entrypoint-initdb.d/init.sql
+
+  redis-master:
+    image: 'bitnami/redis:latest'
+    ports:
+      - ${OSM_REDIS_PORT}:6379
+    expose:
+      - ${OSM_DB_PORT}
+    environment:
+      - REDIS_REPLICATION_MODE=master
+      - REDIS_PASSWORD=${OSM_REDIS_PWD}
+    volumes:
+      - redis_data:/data
+
 volumes:
-  db:
+  mysql:
     driver: local

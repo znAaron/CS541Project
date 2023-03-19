@@ -28,8 +28,8 @@ road_type_to_speed = {
 
 node_delay = {
     "give_way": 5,
-    "stop": 15,
-    "traffic_signals": 90
+    "stop": 10,
+    "traffic_signals": 15
 }
 
 class Road_Processer(osmium.SimpleHandler):
@@ -130,9 +130,13 @@ class OSM_Parser:
         self.road_graph.process_neighbours()
         self.road_graph.process_distance(self.database)
 
+        # dump the graph
         self.road_graph.fdump()
-        route, cost = a_star_search(self.road_graph, 5030761221, 37997160)
-        self.road_graph.visualizer.display_route(route)
+
+        aroute, cost = self.road_graph.pathfinder.a_star_search(5030761221, 37997160)
+        self.road_graph.visualizer.display_route(aroute, "astar")
+        droute, cost = self.road_graph.pathfinder.dijkstra_search(5030761221, 37997160)
+        self.road_graph.visualizer.display_route(droute, "dijkstra")
 
         self.database.close()
 

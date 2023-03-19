@@ -2,6 +2,7 @@
 import logging
 from haversine import haversine, Unit
 from src.graph.visualizer import *
+from src.graph.pathfinder_astar import *
 
 MPH_MS_FACTOR = 0.44704
 
@@ -75,6 +76,8 @@ class Road_Graph:
         self.road_segments = {}
         # visualize the graph
         self.visualizer = Visualizer(self)
+        # find the shortest path
+        self.pathfinder = Pathfinder(self)
     
     def add_intersection(self, i):
         self.intersections[i.id] = i
