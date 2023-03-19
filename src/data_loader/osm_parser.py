@@ -131,7 +131,8 @@ class OSM_Parser:
         self.road_graph.process_distance(self.database)
 
         self.road_graph.fdump()
-        a_star_search(self.road_graph, 5030761221, 37997160)
+        route, cost = a_star_search(self.road_graph, 5030761221, 37997160)
+        self.road_graph.visualizer.display_route(route)
 
         self.database.close()
 

@@ -31,12 +31,12 @@ def a_star_search(graph, src, dst):
                 came_from[next] = current
     
     cost = cost_so_far.get(dst)
-    trail = []
+    route = []
     curr = dst
     while curr is not None:
-        trail.append(curr)
+        route.append(curr)
         curr = came_from.get(curr)
-    trail.reverse()
-    print(trail)
+    route.reverse()
+    print(route)
 
-    return trail, cost
+    return route, cost

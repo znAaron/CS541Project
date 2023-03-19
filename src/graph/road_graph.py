@@ -1,6 +1,7 @@
 # road graph is an abstraction to our road system
 import logging
 from haversine import haversine, Unit
+from src.graph.visualizer import *
 
 MPH_MS_FACTOR = 0.44704
 
@@ -72,6 +73,8 @@ class Road_Graph:
         self.intersections = {}
         # src:dst to road_segment dictionary
         self.road_segments = {}
+        # visualize the graph
+        self.visualizer = Visualizer(self)
     
     def add_intersection(self, i):
         self.intersections[i.id] = i
@@ -95,6 +98,23 @@ class Road_Graph:
         dst = self.intersections.get(i2)
         distance = haversine(src.location(), dst.location(), unit=Unit.METERS)
         return distance
+
+    def route_to_location(self, route):
+        locations = []
+        for id in route:
+            locations.append(self.intersections.get(id).location())
+        return locations
+
+    def center_point(self, locations):
+        lat_sum = 0
+        lon_sum = 0
+        num_location = len(locations)
+        for location in locations:
+            lat_sum += location[0]
+            lon_sum += location[1]
+        center = (lat_sum/num_location, lon_sum/num_location)
+
+        return center
 
     #def shortest_path_dijkstra:
         # To implement
