@@ -3,7 +3,12 @@ import logging.config
 import yaml
 import time
 import os
+from src.conf import *
+from src.database import *
 from src.data_loader.osm_parser import *
+from src.query.query_processor import *
+
+config_init()
 
 # define the data files
 SAMPLE_FILE = "./data/osm-sm/west_lafayette.osm"
@@ -20,18 +25,23 @@ def logmaker():
     return logging.FileHandler(path)
 
 with open('logger.yaml', 'r') as f:
-    config = yaml.safe_load(f.read())
-    logging.config.dictConfig(config)
+    log_config = yaml.safe_load(f.read())
+    logging.config.dictConfig(log_config)
 
 logger = logging.getLogger(__name__)
 
 # main function
 def main():
+    database_init()
+
     osm_data = SAMPLE_FILE
     logger.info(f"loading data from file: {osm_data}")
+    parser = OSM_Parser(osm_data)
+    graph = parser.load_sample_data()
 
-    osm_parser = OSM_Parser(osm_data)
-    osm_parser.load_sample_data()
+    processor = Query_Processor(graph)
+    processor.accept_query()
+    database_close()
 
 if __name__ == "__main__":
     main()

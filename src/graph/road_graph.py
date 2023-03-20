@@ -2,15 +2,20 @@
 import logging
 from haversine import haversine, Unit
 from src.graph.visualizer import *
-from src.graph.pathfinder_astar import *
+from src.graph.pathfinder import *
+from src.graph.rangefinder import *
 
 MPH_MS_FACTOR = 0.44704
 
 class Node:
-    def __init__(self, id, lat, lon):
+    def __init__(self, id, lat, lon, name=None):
         self.id = id
         self.lat = lat
         self.lon = lon
+        if name == None:
+            self.name = str(id)
+        else:
+            self.name = name
 
     def location(self):
         return(self.lat, self.lon)
@@ -78,6 +83,8 @@ class Road_Graph:
         self.visualizer = Visualizer(self)
         # find the shortest path
         self.pathfinder = Pathfinder(self)
+        # find the point of interest in the range
+        self.rangefinder = Rangefinder(self)
     
     def add_intersection(self, i):
         self.intersections[i.id] = i

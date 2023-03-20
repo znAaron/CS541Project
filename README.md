@@ -46,7 +46,7 @@ e.g.  path 5030761221 37997160 path1
 
 range type latitude longitude range(m)
 
-e.g.  range food 40.4274555 -86.9169385 100
+e.g.  range food 40.4274555 -86.9169385 500
 
 ### K Nearest Query
 

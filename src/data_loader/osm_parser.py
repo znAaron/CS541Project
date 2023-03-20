@@ -3,9 +3,10 @@ import logging
 import osmium
 from src.data_loader.road_system import *
 from src.data_loader.osm_database import *
-from src.graph.road_graph import *
-from src.graph.pathfinder_astar import *
 from src.data_loader.osm_redis import *
+from src.graph.road_graph import *
+from src.graph.pathfinder import *
+import src.database
 
 # define the tags for different road type
 road_types = {"motorway", "trunk", "primary", "secondary", "tertiary", "unclassified", "residential"}
@@ -95,6 +96,7 @@ class Node_Processer(osmium.SimpleHandler):
             if tag in node_delay.keys():
                 delay = node_delay.get(tag)
         intersection = Intersection(n.id, n.location.lat, n.location.lon, delay)
+        self.redis.add_geo("intersection", intersection)
         self.road_graph.add_intersection(intersection)
 
     def process_interestpoint(self, n):
@@ -111,17 +113,17 @@ class Node_Processer(osmium.SimpleHandler):
         if n.id in self.road_system.intersections:
             self.process_intersection(n)
 
-
 class OSM_Parser:
     def __init__(self, soruce_data):
         self.logger = logging.getLogger(__name__)
-        self.data = soruce_data
 
+        self.data = soruce_data
         self.road_system = Road_System()
         self.road_graph = Road_Graph()
-        self.database = OSM_Database()
-        self.redis = OSM_Redis()
-
+        
+        self.sql_database = src.database.sql_database
+        self.redis_database = src.database.redis_database
+        
     # the log enable us to trace the performance using the timestamp
     def load_sample_data(self):
         r_processor = Road_Processer(self.road_system)
@@ -134,23 +136,14 @@ class OSM_Parser:
         self.road_system.find_interesection()
         self.road_system.load_roads(self.road_graph)
 
-        n_processor = Node_Processer(self.road_system, self.road_graph, self.database, self.redis)
+        self.logger.info("start extracting node from the data file")
+        n_processor = Node_Processer(self.road_system, self.road_graph, self.sql_database, self.redis_database)
         n_processor.apply_file(self.data)
-        self.database.flush_node()
+        self.sql_database.flush_node()
+        self.logger.info("finish extracting node from the data file")
         
         # preprocessing for the graph
         self.road_graph.process_neighbours()
-        self.road_graph.process_distance(self.database)
+        self.road_graph.process_distance(self.sql_database)
 
-        # dump the graph
-        self.road_graph.fdump()
-
-        aroute, cost = self.road_graph.pathfinder.a_star_search(5030761221, 37997160)
-        self.road_graph.visualizer.display_route(aroute, "astar")
-        droute, cost = self.road_graph.pathfinder.dijkstra_search(5030761221, 37997160)
-        self.road_graph.visualizer.display_route(droute, "dijkstra")
-
-        self.database.close()
-
-
-
+        return self.road_graph
