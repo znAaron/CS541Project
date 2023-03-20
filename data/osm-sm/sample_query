@@ -1,11 +1,3 @@
-Shortest Path Query:
-path sourceId destinationId visualizeFile(optional)
-e.g. path 5030761221 37997160 path1
-
-Range Query:
-range latitude longitude range(m)
-e.g. range 40.4274555 -86.9169385 100
-
-K Nearest Query:
-nearest latitude longitude number
-nearest 40.4274555 -86.9169385 3
+path 5030761221 37997160 path1
+range food 40.4274555 -86.9169385 100
+nearest food 40.4274555 -86.9169385 3

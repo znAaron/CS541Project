@@ -33,3 +33,23 @@ pip install -r requirements.txt
 ```
 python driver.py
 ```
+
+## Suported query types
+
+### Shortest Path Query
+
+path sourceId destinationId visualizeFile(optional)
+
+e.g.  path 5030761221 37997160 path1
+
+### Range Query
+
+range type latitude longitude range(m)
+
+e.g.  range food 40.4274555 -86.9169385 100
+
+### K Nearest Query
+
+nearest type latitude longitude number
+
+e.g.  nearest food 40.4274555 -86.9169385 3
