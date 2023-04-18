@@ -20,7 +20,7 @@ if not os.path.exists("output/logs"):
 # initialize the logger
 def logmaker():
     log_path = os.path.dirname("./output/logs/")
-    log_name = "graph_database-" + time.strftime("%Y%m%d-%H%M%S") + ".log"
+    log_name = "demo.log"
     path = os.path.join(log_path, log_name)
     return logging.FileHandler(path)
 

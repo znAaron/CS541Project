@@ -30,8 +30,8 @@ road_type_to_speed = {
 
 node_delay = {
     "give_way": 5,
-    "stop": 10,
-    "traffic_signals": 15
+    "stop": 15,
+    "traffic_signals": 90
 }
 
 class Road_Processer(osmium.SimpleHandler):
