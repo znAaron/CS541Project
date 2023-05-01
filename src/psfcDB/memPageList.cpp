@@ -29,3 +29,11 @@ void MemPageList::printList() {
         cur = cur->next;
     }
 };
+
+void MemPageList::flushAll() {
+    MemPage* cur = h_head;
+    while (cur != nullptr) {
+        cur->flush();
+        cur = cur->next;
+    }
+};

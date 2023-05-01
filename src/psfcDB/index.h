@@ -15,7 +15,8 @@
 
 using namespace std;
 
-#define SM_NUM 40
+#define SM_NUM 60
+#define BATCH_SIZE 240
 
 class PsfcIndex {
    private:
@@ -28,7 +29,9 @@ class PsfcIndex {
    public:
     PsfcIndex();  // constructor
     void addNode(Node* node);
-    vector<Node*> findNodes_Host(tuple<double, double> topLeft, tuple<double, double> bottomRight);
+    void flushAll();
+    int findNodes_Host(tuple<double, double> topLeft, tuple<double, double> bottomRight);
+    int findNodes_device(tuple<double, double> topLeft, tuple<double, double> bottomRight);
     vector<Node*> findNodesNamed_Host(tuple<double, double> topLeft,
                                       tuple<double, double> bottomRight, const char* name);
     int numPages();

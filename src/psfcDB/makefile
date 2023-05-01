@@ -2,13 +2,14 @@
 
 # Compiler and flags
 CXX := nvcc
-CXXFLAGS := -arch=sm_89
+CXXFLAGS := -arch=sm_89 -std=c++11 -lineinfo
 
 # Source files
-SRCS := index.cpp memPage.cpp memPageList.cpp node.cpp tester.cpp
+CPP_SRCS := memPage.cpp memPageList.cpp node.cpp tester.cpp
+CU_SRCS := index.cu 
 
 # Object files
-OBJS := $(SRCS:.cpp=.o)
+OBJS := $(CPP_SRCS:.cpp=.o) $(CU_SRCS:.cu=.o)
 
 # Executable name
 EXEC := myprogram
@@ -24,6 +25,9 @@ $(EXEC): $(OBJS)
 
 # Compile CUDA source files
 %.o: %.cpp
+	$(CXX) $(CXXFLAGS) -c $< -o $@
+
+%.o: %.cu
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 
 # Run the tester program

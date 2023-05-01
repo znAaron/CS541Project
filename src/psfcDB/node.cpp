@@ -28,6 +28,26 @@ bool Node::inRegion(tuple<double, double> topLeft, tuple<double, double> bottomR
     return false;
 }
 
+bool Node::inRegionFlat(double topLatitude, double leftLongitude, double bottomLatitude,
+                        double rightLongitude) {
+    if (latitude >= bottomLatitude && latitude <= topLatitude && longitude >= leftLongitude &&
+        longitude <= rightLongitude) {
+        return true;
+    }
+    return false;
+}
+
+string Node::to_string() {
+    string str = "Node: ";
+    str += std::to_string(id);
+    str += "(";
+    str += std::to_string(latitude);
+    str += ", ";
+    str += std::to_string(longitude);
+    str += ")";
+    return str;
+}
+
 bool Node::nameContains(const char* query) {
     if (strstr(name, query) != nullptr) {
         return true;
@@ -80,6 +100,5 @@ Node* generateRandomNamedNode() {
     uint32_t type = rand();
     double latitude = (double)rand() / RAND_MAX * 180.0 - 90.0;
     double longitude = (double)rand() / RAND_MAX * 360.0 - 180.0;
-    return new Node(id, type, latitude, longitude,
-                    "This is the Bob's Fancy Coffee Shop in the middle of nowhere");
+    return new Node(id, type, latitude, longitude, "Tom Bob's Fancy Coffee Shop");
 };

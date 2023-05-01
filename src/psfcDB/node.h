@@ -8,16 +8,17 @@
 
 using namespace std;
 
-#define MAX_NAME_LEN 64
+#define MAX_NAME_LEN 32
 #define MAX_LONG 180.0
 #define MAX_LAT 90.0
 
 struct Node {
+    double latitude;
+    double longitude;
+
     uint32_t id;
     uint32_t type;
     uint64_t zIndex;
-    double latitude;
-    double longitude;
     char name[MAX_NAME_LEN];
 
     Node(uint32_t nid, uint32_t ntype, double nlat, double nlong, const char* nname);
@@ -26,7 +27,12 @@ struct Node {
     // corner and the bottomRight corner
     bool inRegion(tuple<double, double> topLeft, tuple<double, double> bottomRight);
 
+    bool inRegionFlat(double topLatitude, double leftLongitude, double bottomLatitude,
+                      double rightLongitude);
+
     bool nameContains(const char* query);
+
+    string to_string();
 };
 
 bool compareNodes(const Node& a, const Node& b);

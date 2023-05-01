@@ -61,7 +61,7 @@ MemPage *MemPage::splitPage() {
 void MemPage::printPage() {
     cout << "Page " << startIndex << endl;
     for (int i = 0; i < size; i++) {
-        cout << h_data[i].zIndex << " ";
+        cout << h_data[i].id << " ";
     }
     cout << endl;
 }

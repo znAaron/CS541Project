@@ -13,6 +13,7 @@ class MemPageList {
     void appendPage(MemPage* node);
     MemPage* head();
     void printList();
+    void flushAll();
 };
 
 #endif
