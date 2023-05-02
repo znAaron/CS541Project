@@ -44,9 +44,6 @@ MemPage* PsfcIndex::findPage(const map<uint64_t, MemPage*>& pageMap, uint64_t zI
 }
 
 void PsfcIndex::addNode(Node* node) {
-    // cout << "before adding Adding node " << node->zIndex << endl;
-    // printIndex();
-
     MemPage* pageToInsert = findPage(pageMap, node->zIndex);
     if (pageToInsert == nullptr) {
         cerr << "Error finding the first page!" << endl;
@@ -54,7 +51,6 @@ void PsfcIndex::addNode(Node* node) {
 
     int nodeAdded = pageToInsert->addNode(node);
     if (nodeAdded < 0) {
-        // cout << "Splitting page" << endl;
         MemPage* nextPage = pageToInsert->splitPage();
         if (dirtyPages.count(pageToInsert) > 0) {
             dirtyPages.erase(pageToInsert);
@@ -72,10 +68,6 @@ void PsfcIndex::addNode(Node* node) {
     } else if (nodeAdded == 1) {
         dirtyPages.insert(pageToInsert);
     }
-
-    // cout << "after adding Adding node " << node->zIndex << endl;
-    // printIndex();
-    // cout << "##################################################" << endl;
 }
 
 void PsfcIndex::flushAll() { pageList.flushAll(); }
@@ -92,9 +84,9 @@ int PsfcIndex::findNodes_Host(tuple<double, double> topLeft, tuple<double, doubl
     while (currPage != nullptr && currPage->startIndex <= finish) {
         for (int i = 0; i < currPage->size; i++) {
             Node* currNode = &currPage->h_data[i];
+            // cout << currNode->to_string() << " ";
 
             if (currNode->inRegion(topLeft, bottomRight)) {
-                // cout << currNode->to_string() << " ";
                 result++;
             }
         }
@@ -104,7 +96,6 @@ int PsfcIndex::findNodes_Host(tuple<double, double> topLeft, tuple<double, doubl
         // cout << endl;
     }
 
-    // cout << "Pages visited: " << pageVisted << endl;
     return result;
 }
 
@@ -123,8 +114,6 @@ int PsfcIndex::findNodes_device(tuple<double, double> topLeft, tuple<double, dou
     int pageVisted = 0;
     MemPage* currPage = findPage(pageMap, start);
 
-    // Node** debug_pages = (Node**)malloc(BATCH_SIZE * sizeof(Node*));
-
     Node** h_pages;
     Node** d_pages;
     cudaMallocHost((Node***)&h_pages, BATCH_SIZE * sizeof(Node*));
@@ -140,8 +129,6 @@ int PsfcIndex::findNodes_device(tuple<double, double> topLeft, tuple<double, dou
 
     int pageCount = 0;
     while (currPage != nullptr && currPage->startIndex <= finish) {
-        // debug_pages[pageCount] = currPage->h_data;
-
         h_pages[pageCount] = currPage->d_data;
         h_numNodes[pageCount] = currPage->size;
         pageCount++;
@@ -161,15 +148,11 @@ int PsfcIndex::findNodes_device(tuple<double, double> topLeft, tuple<double, dou
                        cudaMemcpyDeviceToHost);
 
             for (int i = 0; i < BATCH_SIZE; i++) {
-                // Node* currPage = debug_pages[i];
                 for (int j = 0; j < h_numNodes[i]; j++) {
-                    // Node* currNode = &currPage[j];
                     if (results[i * PAGE_SIZE + j]) {
-                        // cout << currNode->to_string() << " ";
                         count++;
                     }
                 }
-                // cout << endl;
             }
             pageCount = 0;
         }
@@ -179,8 +162,6 @@ int PsfcIndex::findNodes_device(tuple<double, double> topLeft, tuple<double, dou
     }
 
     if (pageCount != 0) {
-        // cout << "remained pages: " << pageCount << endl;
-
         cudaMemcpy(d_pages, h_pages, pageCount * sizeof(Node*), cudaMemcpyHostToDevice);
         cudaMemcpy(d_numNodes, h_numNodes, pageCount * sizeof(int), cudaMemcpyHostToDevice);
 
@@ -195,15 +176,11 @@ int PsfcIndex::findNodes_device(tuple<double, double> topLeft, tuple<double, dou
                    cudaMemcpyDeviceToHost);
 
         for (int i = 0; i < pageCount; i++) {
-            // Node* currPage = debug_pages[i];
             for (int j = 0; j < h_numNodes[i]; j++) {
-                // Node* currNode = &currPage[j];
                 if (results[i * PAGE_SIZE + j]) {
-                    // cout << currNode->to_string() << " ";
                     count++;
                 }
             }
-            // cout << endl;
         }
     }
 
@@ -225,8 +202,6 @@ vector<Node*> PsfcIndex::findNodesNamed_Host(tuple<double, double> topLeft,
     int pageVisted = 0;
     MemPage* currPage = findPage(pageMap, start);
     while (currPage != nullptr && currPage->startIndex <= finish) {
-        // cout << "currPage->startIndex: " << currPage->startIndex << endl;
-
         for (int i = 0; i < currPage->size; i++) {
             Node* currNode = &currPage->h_data[i];
             if (currNode->zIndex > finish) {

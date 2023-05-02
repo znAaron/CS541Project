@@ -1,39 +1,48 @@
 # Makefile
 
 # Compiler and flags
-CXX := nvcc
-CXXFLAGS := -arch=sm_89 -std=c++11 -lineinfo
+CUDA := nvcc
+CUDAFLAGS := -arch=sm_89 -std=c++11 -ljsoncpp
+GXX := g++
+GXXFLAGS := -std=c++11 -ljsoncpp
 
 # Source files
-CPP_SRCS := memPage.cpp memPageList.cpp node.cpp tester.cpp
+CPP_SRCS := memPage.cpp memPageList.cpp node.cpp tester.cpp server.cpp
+TEST_SRCS := memPage.cpp memPageList.cpp node.cpp tester.cpp
+SERVER_SRCS := memPage.cpp memPageList.cpp node.cpp server.cpp
 CU_SRCS := index.cu 
 
 # Object files
 OBJS := $(CPP_SRCS:.cpp=.o) $(CU_SRCS:.cu=.o)
+TEST_OBJS := $(TEST_SRCS:.cpp=.o) $(CU_SRCS:.cu=.o)
+SERVER_OBJS := $(SERVER_SRCS:.cpp=.o) $(CU_SRCS:.cu=.o)
 
-# Executable name
-EXEC := myprogram
+# TESTutable name
+TEST := tester
+SERVER := psfcServer
 
 .PHONY: all test clean
 
 # Default target
-all: $(EXEC)
+all: $(TEST) $(SERVER)
+server: $(SERVER)
+test: $(TEST)
 
-# Build the main executable
-$(EXEC): $(OBJS)
-	$(CXX) $(CXXFLAGS) $^ -o $@
+# Build the main TESTutable
+$(TEST): $(TEST_OBJS)
+	$(CUDA) $(CUDAFLAGS) $^ -o $@
+
+# Build the main TESTutable
+$(SERVER): $(SERVER_OBJS)
+	$(CUDA) $(CUDAFLAGS) $^ -o $@
 
 # Compile CUDA source files
 %.o: %.cpp
-	$(CXX) $(CXXFLAGS) -c $< -o $@
+	$(GXX) $(GXXFLAGS) -c $< -o $@
 
 %.o: %.cu
-	$(CXX) $(CXXFLAGS) -c $< -o $@
-
-# Run the tester program
-test: $(EXEC)
-	./$(EXEC)
+	$(CUDA) $(CUDAFLAGS) -c $< -o $@
 
 # Clean generated files
 clean:
-	rm -f $(OBJS) $(EXEC)
+	rm -f $(OBJS) $(TEST)
