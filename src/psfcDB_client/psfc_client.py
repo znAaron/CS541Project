@@ -38,7 +38,7 @@ def num_pages():
     }
     return send_request(json.dumps(request))
 
-# Usage examples
+# test
 
 response = add_node(1, 2, 37.7749, -122.4194, 'Node1')
 print('Add Node response:', response)
