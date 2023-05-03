@@ -19,7 +19,7 @@ class Pathfinder:
         else:
             return self.dijkstra_search(src, dst)
 
-    # shortest
+    # shortest path algorithm
     def a_star_search(self, src, dst):
         """
         Get the shortest path from src node to dst node

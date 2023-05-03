@@ -1,6 +1,5 @@
-Num of pages after population: 32810
-Execution time: 171031 microseconds
-4759164
 Pages visited: 6911
-Execution time: 16794 microseconds
-4759164
+4759164 nodes found
+Host Execution time: 171031 microseconds
+Device Execution time: 16794 microseconds
+

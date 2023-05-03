@@ -56,9 +56,17 @@ bool testFindNodesHostNamed(PsfcIndex* index) {
 
 int main() {
     PsfcIndex* index = new PsfcIndex();
-    populateNodes(index, PAGE_SIZE * SM_NUM * 200);
+    populateNodes(index, PAGE_SIZE * SM_NUM * 300);
     index->flushAll();
 
+    testFindNodesHost(index);
+    testFindNodesDevice(index);
+    testFindNodesHost(index);
+    testFindNodesDevice(index);
+    testFindNodesHost(index);
+    testFindNodesDevice(index);
+    testFindNodesHost(index);
+    testFindNodesDevice(index);
     testFindNodesHost(index);
     testFindNodesDevice(index);
 }

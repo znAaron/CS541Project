@@ -34,7 +34,7 @@ logger = logging.getLogger(__name__)
 def main():
     database_init()
 
-    osm_data = SAMPLE_FILE
+    osm_data = DATA_FILE
     logger.info(f"loading data from file: {osm_data}")
     parser = OSM_Parser(osm_data)
     graph = parser.load_sample_data()
